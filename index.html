@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link 
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+    />
+
+    <title>Piano</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin-left: 10%;
+
+        }
+
+        th, td {
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        button {
+            margin-top: 10px;
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 5px;
+            margin-left: 10%;
+        }
+
+        h1 {
+            font-size: 30px;
+            background-color: rgb(114, 37, 110);
+            color: white;
+            border-color: rgb(0, 0, 0);
+            border-radius: 40px;
+            text-align: center;
+            border-style: solid;
+            margin: 30px;
+            margin-left: 20%;
+            margin-right: 20%;
+        }
+        .firma {
+            font-style: italic;
+            font-size: small;
+        }
+
+        img {
+            width: 60px;
+        }
+
+    </style>
+
+    <audio id="sound" src="sound/endcount.mp3"></audio>
+</head>
+<body>
+
+<h1>CONTADOR HEMATOLÓGICO</h1>
+<br>
+<p style="text-align: center; font-size: 13px;">Utilizar teclas de la <strong>"A"</strong> hasta la <strong>"K"</strong>
+para realizar el recuento, siendo A = BAS y K=MONO</p><br>
+<table>
+    <tr>
+        <th>#</th>
+        <th><img src="img/bas.jpg" >BAS</th>
+        <th><img src="img/eo.jpg" >EOS</th>
+        <th><img src="img/mie.jpg" >MIE</th>
+        <th><img src="img/juv.jpg" >JUV</th>
+        <th><img src="img/bac.jpg" >BAC</th>
+        <th><img src="img/seg.jpg" >SEG</th>
+        <th><img src="img/lin.jpg" >LINF</th>
+        <th><img src="img/mon.jpg" >MONO</th>
+        <th>TOTAL</th>
+    </tr>
+    <tr>
+        <td>N</td>
+        <td id="casilla1">0</td>
+        <td id="casilla2">0</td>
+        <td id="casilla3">0</td>
+        <td id="casilla4">0</td>
+        <td id="casilla5">0</td>
+        <td id="casilla6">0</td>
+        <td id="casilla7">0</td>
+        <td id="casilla8">0</td>
+        <td id="totalCasilla">0</td>
+    </tr>
+    <tr>
+        <td>%</td>
+        <td id="mean1">0%</td>
+        <td id="mean2">0%</td>
+        <td id="mean3">0%</td>
+        <td id="mean4">0%</td>
+        <td id="mean5">0%</td>
+        <td id="mean6">0%</td>
+        <td id="mean7">0%</td>
+        <td id="mean8">0%</td>
+        <td id="total%">0%</td>
+    </tr>
+</table>
+<br>
+<!-- Botón para reiniciar los recuentos -->
+<button id="reiniciarContador" onclick="reiniciarContador()">Reiniciar Contador</button>
+<br><br>
+<!--<div>
+    <img src="https://globetechcdn.com/es_labmedica/images/stories/articles/article_images/2016-02-18/RLJ-433.jpg" 
+    />
+</div>-->
+
+<br><br><br>
+<footer>
+<text class="firma">
+    App Creada por: TM. Simón Vera Alvarez<br>
+    Contacto: simonvera.sva@gmail.com<br>
+    Copyright 2025
+</text>
+</footer>
+
+<script>
+    // Objeto para mapear teclas a casillas
+    const teclasCasillas = {
+        'a': 'casilla1',
+        's': 'casilla2',
+        'd': 'casilla3',
+        'f': 'casilla4',
+        'g': 'casilla5',
+        'h': 'casilla6',
+        'j': 'casilla7',
+        'k': 'casilla8'
+    };
+
+    // Función para manejar eventos de teclado
+    function manejarTecla(event) {
+        const tecla = event.key.toLowerCase();
+        const casillaId = teclasCasillas[tecla];
+        
+        if (casillaId) {
+            const casilla = document.getElementById(casillaId);
+            const valorActual = parseInt(casilla.innerText) || 0;
+            casilla.innerText = valorActual + 1;
+            actualizarTotalCasilla();
+        }
+    }
+
+    // Función para actualizar el contenido de la casilla TOTAL
+    function actualizarTotalCasilla() {
+        const totalCasilla = document.getElementById('totalCasilla');
+        const total = Array.from({ length: 8 }, (_, i) => parseInt(document.getElementById(`casilla${i + 1}`).innerText) || 0)
+            .reduce((acc, curr) => acc + curr, 0);
+        totalCasilla.innerText = total;
+
+        // Calcular y actualizar los porcentajes 
+        if (total > 0) { 
+            for (let i = 1; i <= 8; i++) { 
+                const casilla = document.getElementById(`casilla${i}`); 
+                const mean = document.getElementById(`mean${i}`); 
+                const valor = parseInt(casilla.innerText) || 0; 
+                const porcentaje = ((valor / total) * 100).toFixed(1); mean.innerText = `${porcentaje}%`; 
+            } 
+            document.getElementById('total%').innerText = '100%'; 
+        } else { 
+            for (let i = 1; i <= 8; i++) { 
+                document.getElementById(`mean${i}`).innerText = '0%'; 
+            } 
+            document.getElementById('total%').innerText = '0%'; 
+        }
+
+        checkCount();
+    }
+
+     //Nuevo: alerta cuando el recuento total suma 100
+
+    function checkCount() {
+        const total = parseInt(document.getElementById('totalCasilla').innerText) || 0;
+        if (total % 100 === 0 && total !=0) {
+            playsound();
+        }
+    }
+
+    function playsound() {
+        const sound = document.getElementById('sound');
+        sound.play();
+    }
+
+    // Agregar escucha de eventos de teclado al documento
+    document.addEventListener("keydown", manejarTecla);
+
+    // Función para reiniciar todos los recuentos a 0
+    function reiniciarContador() {
+        for (let i = 1; i <= 8; i++) {
+            const casilla = document.getElementById(`casilla${i}`);
+            casilla.innerText = '0';
+        }
+        actualizarTotalCasilla();
+    }
+
+    //NUEVO: Logica de actualización con espacio
+
+    document.addEventListener("keydown", function(event) {
+        if (event.code === "Space") {reiniciarContador();
+        }
+    })
+
+   
+;
+
+
+
+
+</script>
+
+</body>
+</html>
